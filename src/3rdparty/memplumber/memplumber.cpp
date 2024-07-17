@@ -98,11 +98,13 @@ class MemPlumberInternal {
         }
     }
 
-    bool isVerbose() {
+    bool isVerbose() const {
         return m_Verbose && m_Dumper != NULL;
     }
 
     public:
+
+    bool isStarted() const { return m_Started; }
 
     static MemPlumberInternal& getInstance() {
         static MemPlumberInternal instance;
@@ -359,6 +361,9 @@ class MemPlumberInternal {
 // TODO: backtrace() is not supported on Windows.
 // We can use dbghelp but it's not supported on MinGW. Need to figure out a way to solve it on all platforms
 const char* getCaller() {
+
+    if (!MemPlumberInternal::getInstance().isStarted())
+        return "";
 
 #ifdef USE_CPPTRACE
     const auto objTrace = cpptrace::generate_object_trace(/*skip=*/3, /*max_depth=*/1);
