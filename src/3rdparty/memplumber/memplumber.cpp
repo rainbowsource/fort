@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef USE_CPPTRACE
+#include <cpptrace/cpptrace.hpp>
+#endif
+
 #ifndef MEMPLUMBER_FILENAME_LEN
 #define MEMPLUMBER_FILENAME_LEN  100
 #endif
@@ -355,6 +359,16 @@ class MemPlumberInternal {
 // TODO: backtrace() is not supported on Windows.
 // We can use dbghelp but it's not supported on MinGW. Need to figure out a way to solve it on all platforms
 const char* getCaller() {
+
+#ifdef USE_CPPTRACE
+    const auto objTrace = cpptrace::generate_object_trace(/*skip=*/3, /*max_depth=*/1);
+    const auto trace = objTrace.resolve();
+    const auto line = trace.to_string();
+    if (!line.empty()) {
+        return line.c_str();
+    }
+#endif
+
     return "Unknown";
 }
 #else
