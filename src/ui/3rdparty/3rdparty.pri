@@ -4,4 +4,5 @@ include($$PWD/qcustomplot/qcustomplot.pri)
 
 include($$PWD/sqlite/sqlite.pri)
 
+include($$PWD/cpptrace/cpptrace.pri)
 include($$PWD/memplumber/memplumber.pri)
