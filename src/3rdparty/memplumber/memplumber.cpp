@@ -63,6 +63,10 @@ class MemPlumberInternal {
         #else
         m_ProgramStarted = -1;
         #endif //COLLECT_STATIC_VAR_DATA
+
+#ifdef USE_CPPTRACE
+        cpptrace::absorb_trace_exceptions(false);
+#endif
     }
 
     FILE* openFile(const char* fileName, bool append) {
@@ -105,6 +109,7 @@ class MemPlumberInternal {
     public:
 
     bool isStarted() const { return m_Started; }
+    FILE* dumper() const { return m_Dumper; }
 
     static MemPlumberInternal& getInstance() {
         static MemPlumberInternal instance;
@@ -362,15 +367,18 @@ class MemPlumberInternal {
 // We can use dbghelp but it's not supported on MinGW. Need to figure out a way to solve it on all platforms
 const char* getCaller() {
 
-    if (!MemPlumberInternal::getInstance().isStarted())
-        return "";
-
 #ifdef USE_CPPTRACE
-    const auto objTrace = cpptrace::generate_object_trace(/*skip=*/3, /*max_depth=*/1);
-    const auto trace = objTrace.resolve();
-    const auto line = trace.to_string();
-    if (!line.empty()) {
-        return line.c_str();
+    static bool isDumping = false;
+    auto dumper = MemPlumberInternal::getInstance().dumper();
+    if (dumper && !isDumping) {
+        isDumping = true;
+
+        const auto objTrace = cpptrace::generate_object_trace(/*skip=*/1, /*max_depth=*/9);
+        const auto trace = objTrace.resolve();
+
+        fprintf(dumper, "Trace: %s\n", trace.to_string().c_str());
+
+        isDumping = false;
     }
 #endif
 
